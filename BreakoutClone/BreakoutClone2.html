@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Breakout Clone</title>
+    <style media="screen">
+        canvas{
+            border: 1px black solid;
+        }
+    </style>
+</head>
+<body>
+<canvas id="id-paddle" width="1000" height="300"></canvas>
+<script>
+    var log = console.log.bind(console);
+
+    var ImageFromPath = function(sPath){
+        var oImg = new Image();
+        oImg.src = sPath;
+        return oImg;
+    };
+
+    var collipseCheckWithBall = function(oImage, oBall){
+        var iR = oBall.image.width/2;
+        //比较横向扩展之后的矩形是否包含圆心
+        var iRight = oImage.x + oImage.image.width + iR;
+        var iLeft = oImage.x - iR;
+        var iTop = oImage.y;
+        var iBottom = oImage.y + oImage.image.height;
+        if(iLeft <= oBall.x && iRight >= oBall.x && iTop <= oBall.y && iBottom >= oBall.y){
+            return true;
+        }
+        //比较纵向扩展之后的矩形是否包含圆心
+        iRight = oImage.x + oImage.image.width;
+        iLeft = oImage.x;
+        iTop = oImage.y - iR;
+        iBottom = oImage.y + oImage.image.height + iR;
+        if(iLeft <= oBall.x && iRight >= oBall.x && iTop <= oBall.y && iBottom >= oBall.y){
+            return true;
+        }
+
+        return false;
+    };
+
+    var ObjectWithImage = function(sPath, iX, iY){
+        return {
+            image : ImageFromPath(sPath),
+            x : iX,
+            y : iY,
+        };
+    };
+
+    var Paddle = function(){
+        var iPaddleX = 350;
+        var iPaddleY = 200;
+        var iSpeed = 5;
+        var oPaddle = new ObjectWithImage('paddle.png', iPaddleX, iPaddleY);
+        oPaddle.speed = iSpeed;
+        oPaddle.moveLeft = function(iLimit){
+            oPaddle.x -= oPaddle.speed;
+            if(oPaddle.x < iLimit){
+                oPaddle.x = iLimit;
+            }
+        };
+        oPaddle.moveRight = function(iLimit){
+            oPaddle.x += oPaddle.speed;
+            if(oPaddle.x > iLimit){
+                oPaddle.x = iLimit;
+            }
+        };
+
+        return oPaddle;
+    };
+
+
+    var Ball = function(){
+        var iBallX = 350;
+        var iBallY = 150;
+        var iSpeedX = 5;
+        var iSpeedY = 5;
+        var oBall = new ObjectWithImage('ball.png', iBallX, iBallY);
+        oBall.speedX = iSpeedX;
+        oBall.speedY = iSpeedY;
+        oBall.fired = false;
+        oBall.fire = function(){
+            oBall.fired = true;
+        };
+        oBall.stop = function(){
+            oBall.fired = false;
+        };
+        oBall.move = function(iLimitedX, iLimitedY){
+            if(oBall.fired){
+                if(oBall.x < 0 || oBall.x > iLimitedX){
+                    oBall.speedX *= -1;
+                }
+                if(oBall.y < 0 || oBall.y > iLimitedY){
+                    oBall.speedY *= -1;
+                }
+
+                oBall.x += oBall.speedX;
+                oBall.y += oBall.speedY;
+            }
+
+        };
+        return oBall;
+    };
+
+    var Director = function(){
+        var oCanvas = document.querySelector('#id-paddle');
+        var oContext = oCanvas.getContext('2d');
+
+        var oDirector = {
+            cavas : oCanvas,
+            context : oContext,
+            actions : {},
+            actionsConditions : {},
+            update : function(){
+
+            },
+            draw : function(){
+
+            }
+        };
+
+        oDirector.drawImage = function(oImage) {
+            oDirector.context.drawImage(oImage.image, oImage.x, oImage.y)
+        };
+
+        oDirector.registerAction = function(sKey, fnCallBack){
+            oDirector.actions[sKey] = fnCallBack;
+        };
+
+        window.addEventListener('keydown',function(oEvent){
+            oDirector.actionsConditions[oEvent.key] = true;
+        });
+
+        window.addEventListener('keyup',function(oEvent){
+            oDirector.actionsConditions[oEvent.key] = false;
+        });
+
+        setInterval(function(){
+
+            var aActions = Object.keys(oDirector.actions);
+            for (var i = 0; i < aActions.length; i ++){
+                var sKey = aActions[i];
+                if(oDirector.actionsConditions[sKey]){
+                    oDirector.actions[sKey]();
+                }
+            }
+
+            oDirector.update();
+            // clear
+            oDirector.context.clearRect(0, 0, oCanvas.width, oCanvas.height);
+            // draw
+            oDirector.draw();
+        },1000/60);
+
+        return oDirector;
+
+    };
+
+
+
+
+    var __main = function(){
+        var oDirector = Director();
+        var oPaddle = Paddle();
+        var oBall = Ball();
+
+        oDirector.registerAction('a', function(){
+            oPaddle.moveLeft(0);
+        });
+        oDirector.registerAction('d', function(){
+            oPaddle.moveRight(oDirector.cavas.width - oPaddle.image.width);
+        });
+        oDirector.registerAction(' ', function(){
+            oBall.fire();
+        });
+        oDirector.registerAction('s', function(){
+            oBall.stop();
+        });
+
+        oDirector.update = function() {
+            oBall.move(oDirector.cavas.width-oBall.image.width, oDirector.cavas.height-oBall.image.height);
+
+            if(collipseCheckWithBall(oPaddle, oBall)){
+                oBall.speedY *= -1;
+            }
+        };
+
+        oDirector.draw = function() {
+            // draw
+            oDirector.drawImage(oPaddle);
+            oDirector.drawImage(oBall);
+        };
+    };
+
+    __main();
+</script>
+</body>
+</html>

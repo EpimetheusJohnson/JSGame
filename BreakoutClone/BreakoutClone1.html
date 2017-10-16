@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Breakout Clone</title>
+    <style media="screen">
+        canvas{
+            border: 1px black solid;
+        }
+    </style>
+</head>
+<body>
+<canvas id="id-paddle" width="1000" height="300"></canvas>
+<script>
+    var log = console.log.bind(console);
+    var iPaddleX = 350;
+    var iPaddleY = 200;
+    var iSpeed = 5;
+    var bLeftPressDown = false;
+    var bRightPressDown = false;
+
+
+
+    var oCanvas = document.querySelector('#id-paddle');
+    var oContext = oCanvas.getContext('2d');
+    var oImg = new Image();
+    oImg.onload = function(){
+        oContext.drawImage(oImg, iPaddleX, iPaddleY);
+    };
+    oImg.src = 'paddle.png';
+    log("hehe");
+
+
+    window.addEventListener('keydown',function(oEvent){
+        var sKey = oEvent.key;
+        if (sKey === 'a'){
+            bLeftPressDown = true;
+//            iPaddleX -= iSpeed;
+//            oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
+//            oContext.drawImage(oImg, iPaddleX, iPaddleY);
+        }else if (sKey === 'd'){
+            bRightPressDown =  true;
+//            iPaddleX += iSpeed;
+//            oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
+//            oContext.drawImage(oImg, iPaddleX, iPaddleY);
+        }
+    });
+
+
+    window.addEventListener('keyup',function(oEvent){
+        var sKey = oEvent.key;
+        if (sKey === 'a'){
+            bLeftPressDown = false;
+        }else if (sKey === 'd'){
+            bRightPressDown =  false;
+        }
+    });
+
+
+    setInterval(function(){
+        //update position
+        if(bLeftPressDown){
+            iPaddleX -= iSpeed;
+        }else if(bRightPressDown){
+            iPaddleX += iSpeed;
+        }
+
+        if(iPaddleX < 0){
+            iPaddleX = 0;
+        }
+
+        if(iPaddleX > oCanvas.width - oImg.width){
+            iPaddleX = oCanvas.width - oImg.width;
+        }
+
+        //re-draw
+        oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
+        oContext.drawImage(oImg, iPaddleX, iPaddleY);
+    }, 1000/60);
+</script>
+</body>
+</html>
